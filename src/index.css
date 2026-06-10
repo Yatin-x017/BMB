@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #F5F0FF;
+  --surface: #FFFFFF;
+  --primary: #C5B4E3;
+  --primary-light: #EDE8FF;
+  --primary-dark: #9B85CE;
+  --green: #B8EDD6;
+  --green-dark: #4CAF82;
+  --red: #FFD6D6;
+  --red-dark: #E05C5C;
+  --yellow: #FFF0C2;
+  --yellow-dark: #C49A00;
+  --text: #2C2C3E;
+  --text-muted: #8A8AA8;
+  --border: #E4DFF5;
+  --shadow: 0 2px 14px rgba(150, 130, 200, 0.13);
+  --radius: 12px;
+  --font: 'Inter', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+input, textarea, select {
+  font-family: var(--font);
+}
