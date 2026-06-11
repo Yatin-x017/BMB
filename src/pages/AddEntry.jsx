@@ -4,48 +4,60 @@ import { useLang } from '../context/LanguageContext';
 import useStore from '../store/useStore';
 
 export default function AddEntry() {
-  const { t } = useLang();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { t }      = useLang();
+  const navigate   = useNavigate();
+  const location   = useLocation();
   const { parties, addEntry, addParty } = useStore();
 
   // Pre-select party if navigated from UdharDetail
   const preSelected = location.state?.party_id ?? '';
 
   const [form, setForm] = useState({
-    party_id:  preSelected,
-    amount:    '',
-    type:      'udhar',
-    date:      new Date().toISOString().split('T')[0],
-    note:      '',
+    party_id: preSelected,
+    amount:   '',
+    type:     'udhar',
+    date:     new Date().toISOString().split('T')[0],
+    note:     '',
   });
 
-  // New party mode
   const [newPartyMode, setNewPartyMode] = useState(false);
-  const [newParty, setNewParty] = useState({ name: '', phone: '' });
-  const [error, setError] = useState('');
+  const [newParty,     setNewParty]     = useState({ name: '', phone: '' });
+  const [loading,      setLoading]      = useState(false);
+  const [error,        setError]        = useState('');
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError('');
 
+    // ── Validation ──────────────────────────────────────────────────────
     let partyId = form.party_id;
 
-    // Create new party if in new party mode
     if (newPartyMode) {
       if (!newParty.name.trim()) { setError('Name is required'); return; }
-      const id = Date.now().toString();
-      addParty({ id, name: newParty.name.trim(), phone: newParty.phone.trim(), balance: 0 });
-      partyId = id;
+    } else {
+      if (!partyId) { setError('Select a party'); return; }
     }
 
-    if (!partyId)           { setError('Select a party'); return; }
-    if (!form.amount || isNaN(form.amount) || Number(form.amount) <= 0)
-      { setError('Enter a valid amount'); return; }
+    if (!form.amount || isNaN(form.amount) || Number(form.amount) <= 0) {
+      setError('Enter a valid amount');
+      return;
+    }
 
-    addEntry({
-      id:       Date.now().toString(),
+    setLoading(true);
+
+    // ── Create new party first if needed ──────────────────────────────
+    if (newPartyMode) {
+      const { data, error: pErr } = await addParty({
+        name:  newParty.name,
+        phone: newParty.phone,
+      });
+      if (pErr) { setError(pErr.message); setLoading(false); return; }
+      partyId = data.id;
+    }
+
+    // ── Add entry ────────────────────────────────────────────────────
+    const { error: eErr } = await addEntry({
       party_id: partyId,
       amount:   Number(form.amount),
       type:     form.type,
@@ -53,7 +65,10 @@ export default function AddEntry() {
       note:     form.note.trim(),
     });
 
-    navigate(partyId ? `/parties/${partyId}` : '/parties');
+    setLoading(false);
+    if (eErr) { setError(eErr.message); return; }
+
+    navigate(`/parties/${partyId}`);
   };
 
   return (
@@ -159,8 +174,16 @@ export default function AddEntry() {
 
         {/* ── Actions ── */}
         <div style={s.actions}>
-          <button style={s.cancelBtn} onClick={() => navigate(-1)}>{t.cancel}</button>
-          <button style={s.saveBtn} onClick={handleSubmit}>{t.save}</button>
+          <button style={s.cancelBtn} onClick={() => navigate(-1)} disabled={loading}>
+            {t.cancel}
+          </button>
+          <button
+            style={{ ...s.saveBtn, opacity: loading ? 0.7 : 1 }}
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? '...' : t.save}
+          </button>
         </div>
       </div>
     </div>
@@ -183,6 +206,7 @@ const s = {
     width: '100%', padding: '10px 12px',
     border: '1.5px solid var(--border)', borderRadius: 'var(--radius)',
     fontSize: 14, color: 'var(--text)', background: 'var(--bg)', outline: 'none',
+    boxSizing: 'border-box',
   },
   toggleBtn: {
     background: 'none', border: 'none', color: 'var(--primary-dark)',
@@ -204,5 +228,6 @@ const s = {
     flex: 1, padding: '11px', borderRadius: 'var(--radius)',
     border: 'none', background: 'var(--primary-dark)',
     color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+    transition: 'opacity 0.15s',
   },
 };

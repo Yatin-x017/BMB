@@ -79,6 +79,67 @@
   font-weight: 600;
 }
 
+/* ── User section ── */
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  margin-bottom: 10px;
+}
+
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.user-email {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--red-dark);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font);
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+
+.logout-btn:hover {
+  opacity: 1;
+}
+
 /* Language toggle */
 .lang-toggle {
   display: flex;
@@ -90,7 +151,7 @@
   border-radius: 20px;
   padding: 8px 16px;
   cursor: pointer;
-  margin-top: 12px;
+  margin-top: 4px;
 }
 
 .lang-opt {
@@ -119,6 +180,12 @@
 
 /* ── Mobile nav (hidden on desktop) ── */
 .mobile-nav { display: none; }
+
+/* ── Auth splash pulse ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%       { opacity: 0.5; transform: scale(0.92); }
+}
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
@@ -165,6 +232,18 @@
     font-weight: 700;
     padding: 6px 14px;
     border-radius: 20px;
+    cursor: pointer;
+  }
+
+  .mob-logout {
+    background: var(--red);
+    border: none;
+    color: var(--red-dark);
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
     cursor: pointer;
   }
 }

@@ -1,5 +1,8 @@
-import { Outlet, NavLink } from "react-router-dom";
+import { useEffect } from "react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useLang } from "../context/LanguageContext";
+import { useAuth } from "../context/AuthContext";
+import useStore from "../store/useStore";
 import "./Layout.css";
 
 const HomeIcon = () => (
@@ -26,14 +29,41 @@ const PlusIcon = () => (
   </svg>
 );
 
+const LogOutIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+    <polyline points="16 17 21 12 16 7"/>
+    <line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+);
+
 export default function Layout() {
   const { t, lang, toggleLang } = useLang();
+  const { user, signOut }       = useAuth();
+  const { fetchAll, reset }     = useStore();
+  const navigate                = useNavigate();
+
+  // Load all data once the layout mounts (user is authenticated at this point)
+  useEffect(() => {
+    fetchAll();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleLogout = async () => {
+    reset();          // Clear store before navigating away
+    await signOut();
+    navigate("/login");
+  };
 
   const navItems = [
-    { to: "/",         label: t.dashboard, Icon: HomeIcon,   end: true },
-    { to: "/parties",  label: t.parties,   Icon: PeopleIcon              },
-    { to: "/add",      label: t.addEntry,  Icon: PlusIcon                },
+    { to: "/",        label: t.dashboard, Icon: HomeIcon,   end: true },
+    { to: "/parties", label: t.parties,   Icon: PeopleIcon            },
+    { to: "/add",     label: t.addEntry,  Icon: PlusIcon              },
   ];
+
+  // Trim email for display
+  const emailDisplay = user?.email?.length > 22
+    ? user.email.slice(0, 22) + "…"
+    : user?.email;
 
   return (
     <div className="layout">
@@ -60,6 +90,18 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
+
+        {/* ── User + Logout ── */}
+        <div className="sidebar-user">
+          <div className="user-avatar">{user?.email?.[0]?.toUpperCase() ?? "?"}</div>
+          <div className="user-info">
+            <span className="user-email">{emailDisplay}</span>
+            <button className="logout-btn" onClick={handleLogout}>
+              <LogOutIcon />
+              {t.logout}
+            </button>
+          </div>
+        </div>
 
         <button className="lang-toggle" onClick={toggleLang}>
           <span className={lang === "en" ? "lang-opt lang-opt--on" : "lang-opt"}>EN</span>
@@ -90,6 +132,9 @@ export default function Layout() {
         ))}
         <button className="mob-lang" onClick={toggleLang}>
           {lang === "en" ? "हि" : "EN"}
+        </button>
+        <button className="mob-logout" onClick={handleLogout} title={t.logout}>
+          <LogOutIcon />
         </button>
       </nav>
 
