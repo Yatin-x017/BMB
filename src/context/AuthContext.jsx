@@ -8,13 +8,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Hydrate session on first load
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Keep in sync with Supabase auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
@@ -27,12 +25,8 @@ export function AuthProvider({ children }) {
   const signIn  = (email, password) =>
     supabase.auth.signInWithPassword({ email, password });
 
-  const signUp  = (email, password) =>
-    supabase.auth.signUp({ email, password });
-
   const signOut = () => supabase.auth.signOut();
 
-  // Splash screen while auth state is resolving — prevents flash of login page
   if (loading) {
     return (
       <div style={splash}>
@@ -42,7 +36,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
@@ -55,18 +49,18 @@ const splash = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "var(--bg)",
+  background: "#0F172A",
 };
 
 const badge = {
   width: 52,
   height: 52,
-  background: "var(--primary-light)",
-  color: "var(--primary-dark)",
+  background: "#F59E0B",
+  color: "#fff",
   borderRadius: 14,
   display: "grid",
   placeItems: "center",
   fontSize: 26,
-  fontWeight: 700,
+  fontWeight: 800,
   animation: "pulse 1.4s ease-in-out infinite",
 };

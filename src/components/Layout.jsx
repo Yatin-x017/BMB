@@ -6,14 +6,14 @@ import useStore from "../store/useStore";
 import "./Layout.css";
 
 const HomeIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
     <polyline points="9 22 9 12 15 12 15 22"/>
   </svg>
 );
 
 const PeopleIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
     <circle cx="9" cy="7" r="4"/>
     <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -22,15 +22,14 @@ const PeopleIcon = () => (
 );
 
 const PlusIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/>
-    <line x1="12" y1="8" x2="12" y2="16"/>
-    <line x1="8" y1="12" x2="16" y2="12"/>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"/>
+    <line x1="5" y1="12" x2="19" y2="12"/>
   </svg>
 );
 
 const LogOutIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
     <polyline points="16 17 21 12 16 7"/>
     <line x1="21" y1="12" x2="9" y2="12"/>
@@ -43,13 +42,12 @@ export default function Layout() {
   const { fetchAll, reset }     = useStore();
   const navigate                = useNavigate();
 
-  // Load all data once the layout mounts (user is authenticated at this point)
   useEffect(() => {
     fetchAll();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line
 
   const handleLogout = async () => {
-    reset();          // Clear store before navigating away
+    reset();
     await signOut();
     navigate("/login");
   };
@@ -60,9 +58,8 @@ export default function Layout() {
     { to: "/add",     label: t.addEntry,  Icon: PlusIcon              },
   ];
 
-  // Trim email for display
-  const emailDisplay = user?.email?.length > 22
-    ? user.email.slice(0, 22) + "…"
+  const emailDisplay = user?.email?.length > 24
+    ? user.email.slice(0, 24) + "…"
     : user?.email;
 
   return (
@@ -72,7 +69,10 @@ export default function Layout() {
       <aside className="sidebar">
         <div className="sidebar-brand">
           <span className="brand-badge">₹</span>
-          <span className="brand-name">{t.appName}</span>
+          <div>
+            <div className="brand-name">{t.appName}</div>
+            <div className="brand-subtitle">{t.storeName}</div>
+          </div>
         </div>
 
         <nav className="sidebar-nav">
@@ -91,23 +91,26 @@ export default function Layout() {
           ))}
         </nav>
 
-        {/* ── User + Logout ── */}
-        <div className="sidebar-user">
-          <div className="user-avatar">{user?.email?.[0]?.toUpperCase() ?? "?"}</div>
-          <div className="user-info">
-            <span className="user-email">{emailDisplay}</span>
-            <button className="logout-btn" onClick={handleLogout}>
-              <LogOutIcon />
-              {t.logout}
-            </button>
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <div className="user-avatar">{user?.email?.[0]?.toUpperCase() ?? "?"}</div>
+            <div className="user-info">
+              <span className="user-label">{t.loggedInAs}</span>
+              <span className="user-email">{emailDisplay}</span>
+            </div>
           </div>
-        </div>
 
-        <button className="lang-toggle" onClick={toggleLang}>
-          <span className={lang === "en" ? "lang-opt lang-opt--on" : "lang-opt"}>EN</span>
-          <span className="lang-divider" />
-          <span className={lang === "hi" ? "lang-opt lang-opt--on" : "lang-opt"}>हि</span>
-        </button>
+          <button className="logout-btn" onClick={handleLogout}>
+            <LogOutIcon />
+            {t.logout}
+          </button>
+
+          <button className="lang-toggle" onClick={toggleLang}>
+            <span className={lang === "en" ? "lang-opt lang-opt--on" : "lang-opt"}>EN</span>
+            <span className="lang-divider" />
+            <span className={lang === "hi" ? "lang-opt lang-opt--on" : "lang-opt"}>हि</span>
+          </button>
+        </div>
       </aside>
 
       {/* ── Page content ── */}

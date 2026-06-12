@@ -9,7 +9,6 @@ export default function AddEntry() {
   const location   = useLocation();
   const { parties, addEntry, addParty } = useStore();
 
-  // Pre-select party if navigated from UdharDetail
   const preSelected = location.state?.party_id ?? '';
 
   const [form, setForm] = useState({
@@ -29,24 +28,21 @@ export default function AddEntry() {
 
   const handleSubmit = async () => {
     setError('');
-
-    // ── Validation ──────────────────────────────────────────────────────
     let partyId = form.party_id;
 
     if (newPartyMode) {
-      if (!newParty.name.trim()) { setError('Name is required'); return; }
+      if (!newParty.name.trim()) { setError('Customer name is required'); return; }
     } else {
-      if (!partyId) { setError('Select a party'); return; }
+      if (!partyId) { setError('Please select a customer'); return; }
     }
 
     if (!form.amount || isNaN(form.amount) || Number(form.amount) <= 0) {
-      setError('Enter a valid amount');
+      setError('Enter a valid amount greater than 0');
       return;
     }
 
     setLoading(true);
 
-    // ── Create new party first if needed ──────────────────────────────
     if (newPartyMode) {
       const { data, error: pErr } = await addParty({
         name:  newParty.name,
@@ -56,7 +52,6 @@ export default function AddEntry() {
       partyId = data.id;
     }
 
-    // ── Add entry ────────────────────────────────────────────────────
     const { error: eErr } = await addEntry({
       party_id: partyId,
       amount:   Number(form.amount),
@@ -71,119 +66,225 @@ export default function AddEntry() {
     navigate(`/parties/${partyId}`);
   };
 
+  const selectedParty = parties.find((p) => p.id === form.party_id);
+
   return (
-    <div>
+    <div className="page-enter">
       <button style={s.backLink} onClick={() => navigate(-1)}>← {t.back}</button>
-      <h1 style={s.heading}>{t.addEntry}</h1>
 
-      <div style={s.card}>
+      <div style={s.pageHeader}>
+        <h1 style={s.heading}>{t.addEntry}</h1>
+        <p style={s.headingSub}>Record a new transaction for your store</p>
+      </div>
 
-        {/* ── Party select ── */}
-        <label style={s.label}>{t.name}</label>
-        {!newPartyMode ? (
-          <>
-            <select
-              style={s.input}
-              value={form.party_id}
-              onChange={(e) => set('party_id', e.target.value)}
-            >
-              <option value="">{t.search}</option>
-              {parties.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-            <button style={s.toggleBtn} onClick={() => setNewPartyMode(true)}>
-              + {t.addParty}
+      <div style={s.layout}>
+        {/* ── Main form ── */}
+        <div style={s.card}>
+
+          {/* ── Type toggle — most important, first ── */}
+          <div style={s.section}>
+            <label style={s.sectionLabel}>Transaction Type</label>
+            <div style={s.typeGrid}>
+              {['udhar', 'payment'].map((type) => {
+                const isUdhar   = type === 'udhar';
+                const isActive  = form.type === type;
+                return (
+                  <button
+                    key={type}
+                    style={{
+                      ...s.typeCard,
+                      border: `2px solid ${isActive
+                        ? (isUdhar ? 'var(--red-dark)' : 'var(--green-dark)')
+                        : 'var(--border)'}`,
+                      background: isActive
+                        ? (isUdhar ? 'var(--red)' : 'var(--green)')
+                        : 'var(--surface-2)',
+                    }}
+                    onClick={() => set('type', type)}
+                  >
+                    <span style={{ fontSize: 24 }}>{isUdhar ? '📤' : '📥'}</span>
+                    <span style={{
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: isActive
+                        ? (isUdhar ? 'var(--red-dark)' : 'var(--green-dark)')
+                        : 'var(--text-muted)',
+                    }}>
+                      {isUdhar ? t.udhar : t.payment}
+                    </span>
+                    <span style={{
+                      fontSize: 11,
+                      color: 'var(--text-faint)',
+                      fontWeight: 500,
+                    }}>
+                      {isUdhar ? 'Customer owes you' : 'Customer paid you'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Customer ── */}
+          <div style={s.section}>
+            <div style={s.fieldHeaderRow}>
+              <label style={s.sectionLabel}>Customer</label>
+              <button style={s.modeToggle} onClick={() => setNewPartyMode((v) => !v)}>
+                {newPartyMode ? '← Select existing' : `+ ${t.addParty}`}
+              </button>
+            </div>
+
+            {!newPartyMode ? (
+              <select
+                style={s.input}
+                value={form.party_id}
+                onChange={(e) => set('party_id', e.target.value)}
+              >
+                <option value="">— Select customer —</option>
+                {parties.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}{p.phone ? ` (${p.phone})` : ''}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div style={s.newPartyFields}>
+                <input
+                  style={s.input}
+                  placeholder="Customer name *"
+                  value={newParty.name}
+                  onChange={(e) => setNewParty((n) => ({ ...n, name: e.target.value }))}
+                />
+                <input
+                  style={s.input}
+                  placeholder="Phone number (optional)"
+                  value={newParty.phone}
+                  onChange={(e) => setNewParty((n) => ({ ...n, phone: e.target.value }))}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* ── Amount ── */}
+          <div style={s.section}>
+            <label style={s.sectionLabel}>{t.amount}</label>
+            <div style={s.amountWrap}>
+              <span style={s.currencyPrefix}>₹</span>
+              <input
+                style={{ ...s.input, ...s.amountInput }}
+                type="number"
+                placeholder="0"
+                min="1"
+                value={form.amount}
+                onChange={(e) => set('amount', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* ── Date + Note row ── */}
+          <div style={s.twoCol}>
+            <div style={s.section}>
+              <label style={s.sectionLabel}>{t.date}</label>
+              <input
+                style={s.input}
+                type="date"
+                value={form.date}
+                onChange={(e) => set('date', e.target.value)}
+              />
+            </div>
+            <div style={s.section}>
+              <label style={s.sectionLabel}>{t.note}</label>
+              <input
+                style={s.input}
+                placeholder="e.g. Cement bags, October rent…"
+                value={form.note}
+                onChange={(e) => set('note', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* ── Error ── */}
+          {error && (
+            <div style={s.errorBox}>
+              <span>⚠️</span> {error}
+            </div>
+          )}
+
+          {/* ── Actions ── */}
+          <div style={s.actions}>
+            <button style={s.cancelBtn} onClick={() => navigate(-1)} disabled={loading}>
+              {t.cancel}
             </button>
-          </>
-        ) : (
-          <>
-            <input
-              style={s.input}
-              placeholder={t.name}
-              value={newParty.name}
-              onChange={(e) => setNewParty((n) => ({ ...n, name: e.target.value }))}
-            />
-            <input
-              style={{ ...s.input, marginTop: 8 }}
-              placeholder={t.phone}
-              value={newParty.phone}
-              onChange={(e) => setNewParty((n) => ({ ...n, phone: e.target.value }))}
-            />
-            <button style={s.toggleBtn} onClick={() => setNewPartyMode(false)}>
-              ← {t.back}
-            </button>
-          </>
-        )}
-
-        {/* ── Type toggle ── */}
-        <label style={{ ...s.label, marginTop: 16 }}>{t.udhar} / {t.payment}</label>
-        <div style={s.typeRow}>
-          {['udhar', 'payment'].map((type) => (
             <button
-              key={type}
-              style={{
-                ...s.typeBtn,
-                background: form.type === type
-                  ? (type === 'udhar' ? 'var(--red)' : 'var(--green)')
-                  : 'var(--bg)',
-                color: form.type === type
-                  ? (type === 'udhar' ? 'var(--red-dark)' : 'var(--green-dark)')
-                  : 'var(--text-muted)',
-                border: `1.5px solid ${form.type === type
-                  ? (type === 'udhar' ? 'var(--red-dark)' : 'var(--green-dark)')
-                  : 'var(--border)'}`,
-              }}
-              onClick={() => set('type', type)}
+              style={{ ...s.saveBtn, opacity: loading ? 0.75 : 1 }}
+              onClick={handleSubmit}
+              disabled={loading}
             >
-              {type === 'udhar' ? t.udhar : t.payment}
+              {loading ? 'Saving…' : t.save}
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* ── Amount ── */}
-        <label style={{ ...s.label, marginTop: 16 }}>{t.amount}</label>
-        <input
-          style={s.input}
-          type="number"
-          placeholder="0"
-          value={form.amount}
-          onChange={(e) => set('amount', e.target.value)}
-        />
+        {/* ── Summary preview ── */}
+        <div style={s.preview}>
+          <div style={s.previewTitle}>Preview</div>
+          <div style={s.previewCard}>
+            <div style={s.previewRow}>
+              <span style={s.previewKey}>Customer</span>
+              <span style={s.previewVal}>
+                {newPartyMode
+                  ? (newParty.name || '—')
+                  : (selectedParty?.name || '—')}
+              </span>
+            </div>
+            <div style={s.previewRow}>
+              <span style={s.previewKey}>Type</span>
+              <span style={{
+                ...s.previewChip,
+                background: form.type === 'udhar' ? 'var(--red)' : 'var(--green)',
+                color: form.type === 'udhar' ? 'var(--red-dark)' : 'var(--green-dark)',
+              }}>
+                {form.type === 'udhar' ? t.udhar : t.payment}
+              </span>
+            </div>
+            <div style={s.previewRow}>
+              <span style={s.previewKey}>Amount</span>
+              <span style={{
+                ...s.previewVal,
+                fontWeight: 800,
+                fontSize: 20,
+                color: form.type === 'udhar' ? 'var(--red-dark)' : 'var(--green-dark)',
+              }}>
+                {form.amount ? `₹${Number(form.amount).toLocaleString('en-IN')}` : '₹—'}
+              </span>
+            </div>
+            <div style={s.previewRow}>
+              <span style={s.previewKey}>Date</span>
+              <span style={s.previewVal}>{form.date || '—'}</span>
+            </div>
+            {form.note && (
+              <div style={s.previewRow}>
+                <span style={s.previewKey}>Note</span>
+                <span style={{ ...s.previewVal, fontStyle: 'italic', color: 'var(--text-muted)' }}>{form.note}</span>
+              </div>
+            )}
+          </div>
 
-        {/* ── Date ── */}
-        <label style={{ ...s.label, marginTop: 16 }}>{t.date}</label>
-        <input
-          style={s.input}
-          type="date"
-          value={form.date}
-          onChange={(e) => set('date', e.target.value)}
-        />
-
-        {/* ── Note ── */}
-        <label style={{ ...s.label, marginTop: 16 }}>{t.note}</label>
-        <input
-          style={s.input}
-          placeholder={t.note}
-          value={form.note}
-          onChange={(e) => set('note', e.target.value)}
-        />
-
-        {/* ── Error ── */}
-        {error && <p style={s.error}>{error}</p>}
-
-        {/* ── Actions ── */}
-        <div style={s.actions}>
-          <button style={s.cancelBtn} onClick={() => navigate(-1)} disabled={loading}>
-            {t.cancel}
-          </button>
-          <button
-            style={{ ...s.saveBtn, opacity: loading ? 0.7 : 1 }}
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? '...' : t.save}
-          </button>
+          {selectedParty && (
+            <div style={s.currentBalance}>
+              <span style={s.previewKey}>Current balance</span>
+              <span style={{
+                ...s.previewChip,
+                marginTop: 4,
+                background: selectedParty.balance > 0 ? 'var(--red)' : 'var(--green)',
+                color: selectedParty.balance > 0 ? 'var(--red-dark)' : 'var(--green-dark)',
+              }}>
+                {selectedParty.balance === 0
+                  ? 'Settled'
+                  : `₹${Math.abs(selectedParty.balance).toLocaleString('en-IN')} ${selectedParty.balance > 0 ? t.lena : t.advance}`}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -193,41 +294,170 @@ export default function AddEntry() {
 const s = {
   backLink: {
     background: 'none', border: 'none', color: 'var(--text-muted)',
-    fontSize: 13, fontWeight: 500, padding: '0 0 16px', cursor: 'pointer',
+    fontSize: 13, fontWeight: 500, padding: '0 0 18px', cursor: 'pointer',
+    display: 'block',
   },
-  heading: { fontSize: 22, fontWeight: 700, marginBottom: 20, color: 'var(--text)' },
+  pageHeader: { marginBottom: 24 },
+  heading: { fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.4px', marginBottom: 4 },
+  headingSub: { fontSize: 13, color: 'var(--text-muted)' },
+
+  layout: {
+    display: 'grid',
+    gridTemplateColumns: '1fr auto',
+    gap: 20,
+    alignItems: 'start',
+  },
+
   card: {
-    background: 'var(--surface)', borderRadius: 'var(--radius)',
-    border: '1.5px solid var(--border)', padding: '20px',
-    maxWidth: 480,
+    background: 'var(--surface)',
+    borderRadius: 'var(--radius)',
+    border: '1.5px solid var(--border)',
+    padding: '24px',
+    boxShadow: 'var(--shadow-sm)',
   },
-  label: { display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 },
+
+  section: { marginBottom: 20 },
+  sectionLabel: {
+    display: 'block',
+    fontSize: 11,
+    fontWeight: 700,
+    color: 'var(--text-muted)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    marginBottom: 8,
+  },
+  fieldHeaderRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  modeToggle: {
+    background: 'none', border: 'none',
+    color: 'var(--accent-dark)', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+  },
+
+  typeGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 12,
+  },
+  typeCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 6,
+    padding: '18px 12px',
+    borderRadius: 'var(--radius)',
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+    background: 'var(--surface-2)',
+  },
+
   input: {
-    width: '100%', padding: '10px 12px',
-    border: '1.5px solid var(--border)', borderRadius: 'var(--radius)',
-    fontSize: 14, color: 'var(--text)', background: 'var(--bg)', outline: 'none',
+    display: 'block',
+    width: '100%',
+    padding: '10px 14px',
+    border: '1.5px solid var(--border)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 14,
+    color: 'var(--text)',
+    background: 'var(--surface-2)',
+    outline: 'none',
     boxSizing: 'border-box',
+    transition: 'border-color 0.15s',
   },
-  toggleBtn: {
-    background: 'none', border: 'none', color: 'var(--primary-dark)',
-    fontSize: 12, fontWeight: 600, padding: '6px 0', cursor: 'pointer',
+  newPartyFields: { display: 'flex', flexDirection: 'column', gap: 8 },
+
+  amountWrap: { position: 'relative', display: 'flex', alignItems: 'center' },
+  currencyPrefix: {
+    position: 'absolute',
+    left: 13,
+    fontSize: 16,
+    fontWeight: 700,
+    color: 'var(--text-muted)',
+    pointerEvents: 'none',
   },
-  typeRow: { display: 'flex', gap: 10 },
-  typeBtn: {
-    flex: 1, padding: '10px', borderRadius: 'var(--radius)',
-    fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
+  amountInput: { paddingLeft: 30, fontSize: 20, fontWeight: 700 },
+
+  twoCol: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 16,
+    marginBottom: 0,
   },
-  error: { color: 'var(--red-dark)', fontSize: 12, marginTop: 12 },
-  actions: { display: 'flex', gap: 10, marginTop: 20 },
+
+  errorBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    background: 'var(--red)',
+    color: 'var(--red-dark)',
+    fontSize: 13,
+    fontWeight: 500,
+    padding: '10px 14px',
+    borderRadius: 'var(--radius-sm)',
+    marginBottom: 16,
+  },
+
+  actions: { display: 'flex', gap: 10, marginTop: 24 },
   cancelBtn: {
-    flex: 1, padding: '11px', borderRadius: 'var(--radius)',
-    border: '1.5px solid var(--border)', background: 'var(--bg)',
-    color: 'var(--text-muted)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+    flex: 1, padding: '12px',
+    borderRadius: 'var(--radius)', border: '1.5px solid var(--border)',
+    background: 'var(--surface-2)', color: 'var(--text-muted)',
+    fontSize: 14, fontWeight: 600, cursor: 'pointer',
   },
   saveBtn: {
-    flex: 1, padding: '11px', borderRadius: 'var(--radius)',
-    border: 'none', background: 'var(--primary-dark)',
-    color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+    flex: 2, padding: '12px',
+    borderRadius: 'var(--radius)', border: 'none',
+    background: 'var(--sidebar)', color: '#fff',
+    fontSize: 14, fontWeight: 700, cursor: 'pointer',
     transition: 'opacity 0.15s',
+  },
+
+  /* Preview sidebar */
+  preview: {
+    width: 220,
+    position: 'sticky',
+    top: 24,
+  },
+  previewTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: 'var(--text-muted)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    marginBottom: 10,
+  },
+  previewCard: {
+    background: 'var(--surface)',
+    border: '1.5px solid var(--border)',
+    borderRadius: 'var(--radius)',
+    padding: '16px',
+    boxShadow: 'var(--shadow-sm)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 14,
+    marginBottom: 12,
+  },
+  previewRow: { display: 'flex', flexDirection: 'column', gap: 4 },
+  previewKey: { fontSize: 10, color: 'var(--text-faint)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' },
+  previewVal: { fontSize: 14, color: 'var(--text)', fontWeight: 600 },
+  previewChip: {
+    alignSelf: 'flex-start',
+    fontSize: 12,
+    fontWeight: 700,
+    padding: '3px 10px',
+    borderRadius: 12,
+    display: 'inline-block',
+  },
+  currentBalance: {
+    background: 'var(--surface)',
+    border: '1.5px solid var(--border)',
+    borderRadius: 'var(--radius)',
+    padding: '14px 16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
   },
 };

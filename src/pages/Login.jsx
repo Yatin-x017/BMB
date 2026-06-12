@@ -4,108 +4,129 @@ import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LanguageContext";
 
 export default function Login() {
-  const { signIn, signUp }      = useAuth();
+  const { signIn }              = useAuth();
   const { t, lang, toggleLang } = useLang();
   const navigate                = useNavigate();
 
-  const [isSignUp,    setIsSignUp]    = useState(false);
-  const [email,       setEmail]       = useState("");
-  const [password,    setPassword]    = useState("");
-  const [loading,     setLoading]     = useState(false);
-  const [error,       setError]       = useState("");
-  const [successMsg,  setSuccessMsg]  = useState("");
+  const [email,    setEmail]    = useState("");
+  const [password, setPassword] = useState("");
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState("");
+  const [showPass, setShowPass] = useState(false);
 
   const handleSubmit = async () => {
     setError("");
-    setSuccessMsg("");
-
     if (!email.trim())    { setError(t.emailRequired);    return; }
     if (!password.trim()) { setError(t.passwordRequired); return; }
     if (password.length < 6) { setError(t.passwordShort); return; }
 
     setLoading(true);
-    const { error: err } = isSignUp
-      ? await signUp(email.trim(), password)
-      : await signIn(email.trim(), password);
+    const { error: err } = await signIn(email.trim(), password);
     setLoading(false);
 
     if (err) {
       setError(err.message);
-    } else if (isSignUp) {
-      setSuccessMsg(t.checkEmail);
     } else {
       navigate("/");
     }
   };
 
-  const switchMode = () => {
-    setIsSignUp((v) => !v);
-    setError("");
-    setSuccessMsg("");
-  };
-
   return (
     <div style={s.wrap}>
-      <div style={s.card}>
-
-        {/* Brand */}
-        <div style={s.brand}>
-          <span style={s.badge}>₹</span>
-          <span style={s.appName}>{t.appName}</span>
+      {/* Left panel — branding */}
+      <div style={s.left}>
+        <div style={s.leftInner}>
+          <div style={s.brandRow}>
+            <span style={s.badge}>₹</span>
+          </div>
+          <h1 style={s.tagline}>Your store's<br />digital khata.</h1>
+          <p style={s.taglineSub}>
+            Track udhar, advance payments, and customer balances — all in one place.
+          </p>
+          <div style={s.featureList}>
+            {[
+              "All employees see the same live data",
+              "Track udhar & advance per customer",
+              "Complete transaction history",
+            ].map((f) => (
+              <div key={f} style={s.featureItem}>
+                <span style={s.featureDot}>✓</span>
+                <span>{f}</span>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        <h1 style={s.title}>{isSignUp ? t.signUp : t.login}</h1>
-        <p style={s.subtitle}>{isSignUp ? t.signUpSubtitle : t.loginSubtitle}</p>
+      {/* Right panel — form */}
+      <div style={s.right}>
+        <div style={s.card}>
 
-        {/* Email */}
-        <label style={s.label}>{t.email}</label>
-        <input
-          style={s.input}
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          autoComplete="email"
-          onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-        />
+          {/* Lang toggle */}
+          <button style={s.langBtn} onClick={toggleLang}>
+            <span style={lang === "en" ? s.langOn : s.langOff}>EN</span>
+            <span style={s.langDivider} />
+            <span style={lang === "hi" ? s.langOn : s.langOff}>हि</span>
+          </button>
 
-        {/* Password */}
-        <label style={{ ...s.label, marginTop: 14 }}>{t.password}</label>
-        <input
-          style={s.input}
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          autoComplete={isSignUp ? "new-password" : "current-password"}
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-        />
+          <h2 style={s.title}>{t.loginTitle}</h2>
+          <p style={s.subtitle}>{t.loginSubtitle}</p>
 
-        {/* Feedback */}
-        {error      && <p style={s.error}>{error}</p>}
-        {successMsg && <p style={s.success}>{successMsg}</p>}
+          {/* Email */}
+          <div style={s.fieldGroup}>
+            <label style={s.label}>{t.email}</label>
+            <input
+              style={s.input}
+              type="email"
+              placeholder="store@example.com"
+              value={email}
+              autoComplete="email"
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            />
+          </div>
 
-        {/* Submit */}
-        <button
-          style={{ ...s.btn, opacity: loading ? 0.7 : 1 }}
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? "..." : (isSignUp ? t.signUp : t.login)}
-        </button>
+          {/* Password */}
+          <div style={{ ...s.fieldGroup, position: 'relative' }}>
+            <label style={s.label}>{t.password}</label>
+            <input
+              style={s.input}
+              type={showPass ? "text" : "password"}
+              placeholder="••••••••"
+              value={password}
+              autoComplete="current-password"
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            />
+            <button
+              style={s.eyeBtn}
+              onClick={() => setShowPass((v) => !v)}
+              tabIndex={-1}
+            >
+              {showPass ? "🙈" : "👁️"}
+            </button>
+          </div>
 
-        {/* Mode switch */}
-        <button style={s.switchBtn} onClick={switchMode}>
-          {isSignUp ? t.alreadyHaveAccount : t.noAccount}
-        </button>
+          {/* Error */}
+          {error && (
+            <div style={s.errorBox}>
+              <span>⚠️</span> {error}
+            </div>
+          )}
 
-        {/* Language toggle */}
-        <button style={s.langBtn} onClick={toggleLang}>
-          <span style={lang === "en" ? s.langOn : s.langOff}>EN</span>
-          <span style={s.langDivider} />
-          <span style={lang === "hi" ? s.langOn : s.langOff}>हि</span>
-        </button>
+          {/* Submit */}
+          <button
+            style={{ ...s.btn, opacity: loading ? 0.75 : 1 }}
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "Signing in…" : t.login}
+          </button>
 
+          {/* Admin note */}
+          <p style={s.adminNote}>{t.contactAdmin}</p>
+
+        </div>
       </div>
     </div>
   );
@@ -115,129 +136,187 @@ const s = {
   wrap: {
     minHeight: "100vh",
     display: "flex",
+  },
+
+  /* Left branding panel */
+  left: {
+    flex: "0 0 45%",
+    background: "var(--sidebar)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "48px",
+  },
+  leftInner: {
+    maxWidth: 360,
+  },
+  brandRow: {
+    marginBottom: 32,
+  },
+  badge: {
+    display: "inline-grid",
+    placeItems: "center",
+    width: 52,
+    height: 52,
+    background: "var(--accent)",
+    color: "#fff",
+    borderRadius: 14,
+    fontSize: 26,
+    fontWeight: 800,
+  },
+  tagline: {
+    fontSize: 36,
+    fontWeight: 800,
+    color: "#fff",
+    lineHeight: 1.15,
+    letterSpacing: "-0.5px",
+    marginBottom: 14,
+  },
+  taglineSub: {
+    fontSize: 15,
+    color: "var(--sidebar-text)",
+    lineHeight: 1.6,
+    marginBottom: 32,
+  },
+  featureList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+  },
+  featureItem: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 10,
+    fontSize: 14,
+    color: "#94A3B8",
+    lineHeight: 1.4,
+  },
+  featureDot: {
+    color: "var(--accent)",
+    fontWeight: 700,
+    flexShrink: 0,
+    marginTop: 1,
+  },
+
+  /* Right form panel */
+  right: {
+    flex: 1,
+    display: "flex",
     alignItems: "center",
     justifyContent: "center",
     background: "var(--bg)",
-    padding: "20px",
+    padding: "40px 24px",
   },
   card: {
     background: "var(--surface)",
-    borderRadius: "var(--radius)",
+    borderRadius: "var(--radius-lg)",
     border: "1.5px solid var(--border)",
-    padding: "32px 28px",
+    padding: "36px 32px",
     width: "100%",
     maxWidth: 400,
-    boxShadow: "var(--shadow)",
+    boxShadow: "var(--shadow-lg)",
+    position: "relative",
   },
-  brand: {
+
+  langBtn: {
     display: "flex",
     alignItems: "center",
-    gap: 10,
+    gap: 6,
     marginBottom: 28,
+    background: "var(--surface-2)",
+    border: "1.5px solid var(--border)",
+    borderRadius: 20,
+    padding: "6px 14px",
+    cursor: "pointer",
+    fontFamily: "var(--font)",
   },
-  badge: {
-    width: 40,
-    height: 40,
-    background: "var(--primary-light)",
-    color: "var(--primary-dark)",
-    borderRadius: 11,
-    display: "grid",
-    placeItems: "center",
-    fontSize: 20,
-    fontWeight: 700,
-    flexShrink: 0,
-  },
-  appName: {
-    fontSize: 18,
-    fontWeight: 700,
-    color: "var(--text)",
-    letterSpacing: "-0.4px",
-  },
+  langOn:      { fontSize: 12, fontWeight: 700, color: "var(--accent-dark)" },
+  langOff:     { fontSize: 12, fontWeight: 600, color: "var(--text-muted)" },
+  langDivider: { width: 1, height: 12, background: "var(--border)" },
+
   title: {
-    fontSize: 22,
-    fontWeight: 700,
+    fontSize: 24,
+    fontWeight: 800,
     color: "var(--text)",
     marginBottom: 6,
+    letterSpacing: "-0.3px",
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: "var(--text-muted)",
-    marginBottom: 24,
+    marginBottom: 28,
+    lineHeight: 1.5,
+  },
+
+  fieldGroup: {
+    marginBottom: 18,
   },
   label: {
     display: "block",
     fontSize: 12,
     fontWeight: 600,
     color: "var(--text-muted)",
-    marginBottom: 6,
+    marginBottom: 7,
+    textTransform: "uppercase",
+    letterSpacing: "0.4px",
   },
   input: {
     display: "block",
     width: "100%",
-    padding: "10px 12px",
+    padding: "11px 14px",
     border: "1.5px solid var(--border)",
     borderRadius: "var(--radius)",
     fontSize: 14,
     color: "var(--text)",
-    background: "var(--bg)",
+    background: "var(--surface-2)",
     outline: "none",
     boxSizing: "border-box",
+    transition: "border-color 0.15s",
   },
-  error: {
+  eyeBtn: {
+    position: "absolute",
+    right: 10,
+    bottom: 10,
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    fontSize: 16,
+    padding: "2px 4px",
+  },
+
+  errorBox: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    background: "var(--red)",
     color: "var(--red-dark)",
-    fontSize: 12,
-    marginTop: 12,
+    fontSize: 13,
+    fontWeight: 500,
+    padding: "10px 14px",
+    borderRadius: "var(--radius-sm)",
+    marginBottom: 16,
   },
-  success: {
-    color: "var(--green-dark)",
-    fontSize: 12,
-    marginTop: 12,
-    background: "var(--green)",
-    padding: "10px 12px",
-    borderRadius: 8,
-    lineHeight: 1.5,
-  },
+
   btn: {
     display: "block",
     width: "100%",
-    marginTop: 20,
-    padding: "12px",
+    padding: "13px",
     borderRadius: "var(--radius)",
     border: "none",
-    background: "var(--primary-dark)",
+    background: "var(--sidebar)",
     color: "#fff",
     fontSize: 15,
     fontWeight: 700,
     cursor: "pointer",
     transition: "opacity 0.15s",
+    letterSpacing: "-0.1px",
   },
-  switchBtn: {
-    display: "block",
-    width: "100%",
-    marginTop: 12,
-    background: "none",
-    border: "none",
-    color: "var(--primary-dark)",
-    fontSize: 13,
-    fontWeight: 600,
-    cursor: "pointer",
-    padding: "6px",
+
+  adminNote: {
+    fontSize: 12,
+    color: "var(--text-faint)",
     textAlign: "center",
+    marginTop: 16,
+    lineHeight: 1.5,
   },
-  langBtn: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    margin: "18px auto 0",
-    padding: "7px 18px",
-    border: "1.5px solid var(--border)",
-    borderRadius: 20,
-    background: "none",
-    cursor: "pointer",
-    fontFamily: "var(--font)",
-  },
-  langOn:      { fontSize: 13, fontWeight: 700, color: "var(--primary-dark)" },
-  langOff:     { fontSize: 13, fontWeight: 600, color: "var(--text-muted)" },
-  langDivider: { width: 1, height: 14, background: "var(--border)" },
 };

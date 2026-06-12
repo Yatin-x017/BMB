@@ -7,7 +7,7 @@ const useStore = create((set, get) => ({
   loading:  false,
   error:    null,
 
-  // ── Fetch all data for the logged-in user ────────────────────────────────
+  // ── Fetch all store data (shared across all employees) ───────────────────
   fetchAll: async () => {
     set({ loading: true, error: null });
 
@@ -27,7 +27,7 @@ const useStore = create((set, get) => ({
     set({ parties: parties ?? [], entries: entries ?? [], loading: false });
   },
 
-  // ── Add a new party ──────────────────────────────────────────────────────
+  // ── Add a new customer ───────────────────────────────────────────────────
   addParty: async ({ name, phone }) => {
     const { data, error } = await supabase
       .from('parties')
@@ -41,8 +41,27 @@ const useStore = create((set, get) => ({
     return { data, error };
   },
 
+  // ── Delete a customer and all their entries ──────────────────────────────
+  deleteParty: async (partyId) => {
+    const [
+      { error: eErr },
+      { error: pErr },
+    ] = await Promise.all([
+      supabase.from('entries').delete().eq('party_id', partyId),
+      supabase.from('parties').delete().eq('id', partyId),
+    ]);
+
+    const error = eErr || pErr;
+    if (!error) {
+      set((s) => ({
+        parties: s.parties.filter((p) => p.id !== partyId),
+        entries: s.entries.filter((e) => e.party_id !== partyId),
+      }));
+    }
+    return { error };
+  },
+
   // ── Add an entry and update the party's running balance ──────────────────
-  // Both operations run in parallel; local state only updates if both succeed.
   addEntry: async ({ party_id, amount, type, date, note }) => {
     const delta      = type === 'udhar' ? amount : -amount;
     const party      = get().parties.find((p) => p.id === party_id);
@@ -75,6 +94,37 @@ const useStore = create((set, get) => ({
     }
 
     return { data: entry, error };
+  },
+
+  // ── Delete an entry and revert the party's balance ───────────────────────
+  deleteEntry: async (entryId) => {
+    const entry  = get().entries.find((e) => e.id === entryId);
+    if (!entry) return { error: new Error('Entry not found') };
+
+    const delta      = entry.type === 'udhar' ? -entry.amount : entry.amount;
+    const party      = get().parties.find((p) => p.id === entry.party_id);
+    const newBalance = (party?.balance ?? 0) + delta;
+
+    const [
+      { error: delErr },
+      { error: balErr },
+    ] = await Promise.all([
+      supabase.from('entries').delete().eq('id', entryId),
+      supabase.from('parties').update({ balance: newBalance }).eq('id', entry.party_id),
+    ]);
+
+    const error = delErr || balErr;
+
+    if (!error) {
+      set((s) => ({
+        entries: s.entries.filter((e) => e.id !== entryId),
+        parties: s.parties.map((p) =>
+          p.id === entry.party_id ? { ...p, balance: newBalance } : p
+        ),
+      }));
+    }
+
+    return { error };
   },
 
   // ── Clear store on logout ────────────────────────────────────────────────
