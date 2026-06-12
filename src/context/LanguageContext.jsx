@@ -18,7 +18,7 @@ const translations = {
     cancel: "Cancel",
     edit:   "Edit",
     delete: "Delete",
-    dena:   "To Give",
+    advance:   "Advance",
     lena:   "To Receive",
     balance:  "Balance",
     payment:  "Payment",
