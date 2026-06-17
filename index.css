@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ══════════════════════════════════════════════════
+   THEME TOKENS — Light (default)
+══════════════════════════════════════════════════ */
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --bg:        #F5F0FF;
+  --surface:   #FFFFFF;
+  --surface-2: #F8F4FC;
+  --border:    #E4DFF5;
+
+  /* Text */
+  --text:       #2C2C3E;
+  --text-muted: #8A86A8;
+  --text-faint: #C7C2DE;
+
+  /* Brand / accent */
+  --accent:       #9B85CE;
+  --accent-light: #EFE9FB;
+  --accent-dark:  #7C5FBF;
+  --accent-hover: #8A72C2;
+
+  /* Sidebar ("ledger spine") */
+  --sidebar:      #221C38;
+  --sidebar-text: #A8A0C8;
+
+  /* Status colors */
+  --green:      #E0F8EE;
+  --green-mid:  #9FE6C4;
+  --green-dark: #1E9C6E;
+
+  --red:      #FFE6E6;
+  --red-mid:  #FFBABA;
+  --red-dark: #E5484D;
+
+  --yellow:      #FFF3D6;
+  --yellow-dark: #C8941A;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 3px rgba(91, 66, 168, 0.08), 0 1px 2px rgba(91, 66, 168, 0.05);
+  --shadow-lg: 0 20px 50px rgba(54, 34, 110, 0.20);
+
+  /* Shape */
+  --radius-sm: 8px;
+  --radius:    12px;
+  --radius-lg: 18px;
+
+  /* Type */
+  --font: 'Inter', sans-serif;
+}
+
+/* ══════════════════════════════════════════════════
+   THEME TOKENS — Dark
+══════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg:        #15131F;
+  --surface:   #1D1A2E;
+  --surface-2: #262238;
+  --border:    #342F4C;
+
+  /* Text */
+  --text:       #EFEDFA;
+  --text-muted: #9A94BC;
+  --text-faint: #696284;
+
+  /* Brand / accent */
+  --accent:       #B6A2F2;
+  --accent-light: rgba(182, 162, 242, 0.15);
+  --accent-dark:  #D7C9FF;
+  --accent-hover: #C7B6F7;
+
+  /* Sidebar ("ledger spine") */
+  --sidebar:      #0E0C18;
+  --sidebar-text: #9089AE;
+
+  /* Status colors */
+  --green:      rgba(94, 224, 168, 0.14);
+  --green-mid:  #3F8F6C;
+  --green-dark: #6CEDB3;
+
+  --red:      rgba(255, 120, 120, 0.14);
+  --red-mid:  #B5494D;
+  --red-dark: #FF8B8B;
+
+  --yellow:      rgba(255, 209, 102, 0.16);
+  --yellow-dark: #FFD166;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* ══════════════════════════════════════════════════
+   GLOBAL RESET & BASE
+══════════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+input, textarea, select {
+  font-family: var(--font);
+}
+
+/* Smooth color transitions when switching themes, without
+   fighting hover/active transitions defined inline */
+button, a, input, select, textarea,
+.sidebar, .mobile-nav, .layout, .main-content {
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+/* Accessible keyboard focus ring everywhere */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-faint);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent) !important;
+}
+
+::selection {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
+
+/* ══════════════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════════════ */
+@keyframes pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%       { opacity: 0.5; transform: scale(0.92); }
+}
+
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: page-fade-in 0.28s ease both;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent-dark);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.spin-icon {
+  display: inline-block;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
