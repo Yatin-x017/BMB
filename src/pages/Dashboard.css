@@ -1,0 +1,151 @@
+.dashboard-loading {
+  padding: 40px;
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 28px;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(240px, 1fr)
+    );
+}
+
+.activity-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 20px 24px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.activity-header h2 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.view-all-btn {
+  border: none;
+  background: transparent;
+
+  cursor: pointer;
+
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 18px 24px;
+
+  cursor: pointer;
+
+  border-bottom: 1px solid var(--border);
+
+  transition: background .15s ease;
+}
+
+.activity-row:hover {
+  background: var(--surface-2);
+}
+
+.activity-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 700;
+}
+
+.avatar-red {
+  background: rgba(239,68,68,.12);
+  color: var(--danger);
+}
+
+.avatar-green {
+  background: rgba(16,185,129,.12);
+  color: var(--success);
+}
+
+.activity-name {
+  font-weight: 600;
+}
+
+.activity-meta {
+  margin-top: 3px;
+  font-size: .85rem;
+  color: var(--text-muted);
+}
+
+.amount-chip {
+  padding: 8px 14px;
+
+  border-radius: 999px;
+
+  font-weight: 700;
+  font-size: .9rem;
+}
+
+.amount-red {
+  background: rgba(239,68,68,.12);
+  color: var(--danger);
+}
+
+.amount-green {
+  background: rgba(16,185,129,.12);
+  color: var(--success);
+}
+
+.empty-state {
+  padding: 60px 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.empty-icon {
+  font-size: 3rem;
+}
+
+@media (max-width: 768px) {
+
+  .activity-row {
+    padding: 14px 16px;
+  }
+
+  .activity-header {
+    padding: 16px;
+  }
+
+}

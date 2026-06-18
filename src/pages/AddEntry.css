@@ -1,0 +1,131 @@
+.back-link {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  margin-bottom: 20px;
+  color: var(--text-muted);
+}
+
+.entry-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+.section-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.section-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.link-btn {
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 14px;
+}
+
+.type-card {
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.type-card-active.debt {
+  border-color: var(--danger);
+}
+
+.type-card-active.payment {
+  border-color: var(--success);
+}
+
+.type-icon {
+  font-size: 24px;
+}
+
+.modern-select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.action-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.preview-card {
+  height: fit-content;
+  position: sticky;
+  top: 24px;
+}
+
+.preview-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.error-box {
+  background: rgba(239,68,68,.1);
+  color: var(--danger);
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+
+  .entry-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-card {
+    position: static;
+  }
+}
